@@ -38,7 +38,14 @@ class ApiClient {
       throw new Error(error.message || 'Request failed');
     }
 
-    return response.json();
+    // Handle 204 No Content and empty bodies
+    if (response.status === 204) {
+      return undefined as unknown as T;
+    }
+
+    const text = await response.text();
+    if (!text) return undefined as unknown as T;
+    return JSON.parse(text);
   }
 
   // Auth
