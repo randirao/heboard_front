@@ -80,7 +80,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header user={user} onLogout={handleLogout} onCreatePost={handleCreatePost} />
 
       {view === 'list' && (
