@@ -29,7 +29,7 @@ export function PostForm({ post, onClose, onSuccess }: PostFormProps) {
 
     try {
       if (post) {
-        await api.updatePost(post.id, title, content);
+        await api.updatePost(post.articleId, title, content);
       } else {
         await api.createPost(title, content);
       }

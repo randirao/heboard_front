@@ -102,7 +102,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
               <div className="space-y-3">
                 {popularPosts.map((post, index) => (
                   <div
-                    key={post.id}
+                    key={post.articleId}
                     onClick={() => onPostClick(post)}
                     className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                   >
@@ -114,7 +114,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
                         {post.title}
                       </div>
                       <div className="flex items-center gap-2 text-gray-500">
-                        <span>{post.author.username}</span>
+                        <span>{post.writerName}</span>
                         <span>·</span>
                         <span>조회 {post.viewCount}</span>
                       </div>
@@ -139,7 +139,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
               <div className="space-y-3">
                 {recentPosts.map((post) => (
                   <div
-                    key={post.id}
+                    key={post.articleId}
                     onClick={() => onPostClick(post)}
                     className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
                   >
@@ -147,7 +147,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
                       {post.title}
                     </div>
                     <div className="flex items-center gap-2 text-gray-500">
-                      <span>{post.author.username}</span>
+                      <span>{post.writerName}</span>
                       <span>·</span>
                       <span>{formatDate(post.createdAt)}</span>
                       <span>·</span>

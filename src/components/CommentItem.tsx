@@ -4,11 +4,11 @@ import type { Comment, User } from '../types';
 interface CommentItemProps {
   comment: Comment;
   currentUser: User;
-  onDelete: (commentId: string) => void;
+  onDelete: (commentId: number) => void;
 }
 
 export function CommentItem({ comment, currentUser, onDelete }: CommentItemProps) {
-  const isAuthor = currentUser.id === comment.authorId;
+  const isAuthor = currentUser.userId === comment.writer.id;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -30,7 +30,7 @@ export function CommentItem({ comment, currentUser, onDelete }: CommentItemProps
     <div className="py-4 border-b border-gray-100 last:border-0">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="text-gray-900">{comment.author.username}</span>
+          <span className="text-gray-900">{comment.writer.name}</span>
           <span className="text-gray-400">·</span>
           <span className="text-gray-500">{formatDate(comment.createdAt)}</span>
         </div>

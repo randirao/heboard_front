@@ -32,7 +32,7 @@ export function PostItem({ post, onClick }: PostItemProps) {
     >
       <h3 className="text-gray-900 mb-2">{post.title}</h3>
       <div className="flex items-center gap-4 text-gray-500">
-        <span>{post.author.username}</span>
+        <span>{post.writerName}</span>
         <span>{formatDate(post.createdAt)}</span>
         <div className="flex items-center gap-3 ml-auto">
           <div className="flex items-center gap-1">

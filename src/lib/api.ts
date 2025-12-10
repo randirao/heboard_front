@@ -1,12 +1,11 @@
 import { authService } from './auth';
 import { mockApi } from './mockData';
-import type { AuthResponse, PostsResponse, Post, Comment, SortOption } from '../types';
+import type { LoginResponse, SignupResponse, PostsResponse, Post, Comment, SortOption } from '../types';
 
-// TODO: Replace with your actual backend API URL
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8080/api';
 
 // Set to true to use mock data instead of real API
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 class ApiClient {
   private async request<T>(
@@ -49,104 +48,111 @@ class ApiClient {
   }
 
   // Auth
-  async login(username: string, password: string): Promise<AuthResponse> {
+  async login(identifier: string, password: string): Promise<LoginResponse> {
     if (USE_MOCK_DATA) {
-      return mockApi.login(username, password);
+      return mockApi.login(identifier, password);
     }
-    return this.request<AuthResponse>('/auth/login', {
+    return this.request<LoginResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ identifier, password }),
     });
   }
 
-  async register(username: string, email: string, password: string): Promise<AuthResponse> {
+  async register(nickname: string, email: string, password: string): Promise<SignupResponse> {
     if (USE_MOCK_DATA) {
-      return mockApi.register(username, email, password);
+      return mockApi.register(nickname, email, password);
     }
-    return this.request<AuthResponse>('/auth/register', {
+    return this.request<SignupResponse>('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ nickname, email, password }),
     });
   }
 
   // Posts
   async getPosts(
-    cursor?: string,
+    cursor?: number,
     limit: number = 20,
     sort: SortOption = 'latest',
     search?: string
   ): Promise<PostsResponse> {
     if (USE_MOCK_DATA) {
-      return mockApi.getPosts(cursor, limit, sort, search);
+      return mockApi.getPosts(cursor?.toString(), limit, sort, search);
     }
     const params = new URLSearchParams();
-    if (cursor) params.append('cursor', cursor);
-    params.append('limit', limit.toString());
+    if (cursor) params.append('lastId', cursor.toString());
+    params.append('size', limit.toString());
     params.append('sort', sort);
-    if (search) params.append('search', search);
+    if (search) {
+      params.append('keyword', search);
+      params.append('searchType', 'title,content');
+    }
 
-    return this.request<PostsResponse>(`/posts?${params.toString()}`);
+    return this.request<PostsResponse>(`/articles?${params.toString()}`);
   }
 
-  async getPost(id: string): Promise<Post> {
+  async getPost(id: number): Promise<Post> {
     if (USE_MOCK_DATA) {
-      return mockApi.getPost(id);
+      return mockApi.getPost(id.toString());
     }
-    return this.request<Post>(`/posts/${id}`);
+    return this.request<Post>(`/articles/${id}`);
   }
 
   async createPost(title: string, content: string): Promise<Post> {
     if (USE_MOCK_DATA) {
       return mockApi.createPost(title, content);
     }
-    return this.request<Post>('/posts', {
+    return this.request<Post>('/articles', {
       method: 'POST',
       body: JSON.stringify({ title, content }),
     });
   }
 
-  async updatePost(id: string, title: string, content: string): Promise<Post> {
+  async updatePost(id: number, title: string, content: string): Promise<Post> {
     if (USE_MOCK_DATA) {
-      return mockApi.updatePost(id, title, content);
+      return mockApi.updatePost(id.toString(), title, content);
     }
-    return this.request<Post>(`/posts/${id}`, {
-      method: 'PUT',
+    return this.request<Post>(`/articles/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify({ title, content }),
     });
   }
 
-  async deletePost(id: string): Promise<void> {
+  async deletePost(id: number): Promise<void> {
     if (USE_MOCK_DATA) {
-      return mockApi.deletePost(id);
+      return mockApi.deletePost(id.toString());
     }
-    return this.request<void>(`/posts/${id}`, {
+    return this.request<void>(`/articles/${id}`, {
       method: 'DELETE',
     });
   }
 
   // Comments
-  async getComments(postId: string): Promise<Comment[]> {
+  async getComments(postId: number): Promise<Comment[]> {
     if (USE_MOCK_DATA) {
-      return mockApi.getComments(postId);
+      return mockApi.getComments(postId.toString());
     }
-    return this.request<Comment[]>(`/posts/${postId}/comments`);
+    const params = new URLSearchParams();
+    params.append('page', '0');
+    params.append('size', '100');
+    const response = await this.request<{ content: Comment[] }>(`/articles/${postId}/comments?${params.toString()}`);
+    return response.content;
   }
 
-  async createComment(postId: string, content: string): Promise<Comment> {
+  async createComment(postId: number, content: string): Promise<Comment> {
     if (USE_MOCK_DATA) {
-      return mockApi.createComment(postId, content);
+      return mockApi.createComment(postId.toString(), content);
     }
-    return this.request<Comment>(`/posts/${postId}/comments`, {
+    return this.request<Comment>('/comments', {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ articleId: postId, content }),
     });
   }
 
-  async deleteComment(postId: string, commentId: string): Promise<void> {
+  async deleteComment(postId: number, commentId: number): Promise<void> {
     if (USE_MOCK_DATA) {
-      return mockApi.deleteComment(postId, commentId);
+      return mockApi.deleteComment(postId.toString(), commentId.toString());
     }
-    return this.request<void>(`/posts/${postId}/comments/${commentId}`, {
+    return this.request<void>(`/comments/${commentId}`, {
       method: 'DELETE',
     });
   }

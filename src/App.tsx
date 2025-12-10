@@ -89,7 +89,7 @@ export default function App() {
 
       {view === 'detail' && selectedPost && (
         <PostDetail
-          postId={selectedPost.id}
+          postId={selectedPost.articleId}
           currentUser={user}
           onBack={handleBackToList}
           onEdit={handleEditPost}

@@ -1,17 +1,24 @@
-const TOKEN_KEY = 'heboard_token';
+const ACCESS_TOKEN_KEY = 'heboard_access_token';
+const REFRESH_TOKEN_KEY = 'heboard_refresh_token';
 const USER_KEY = 'heboard_user';
 
 export const authService = {
-  setToken(token: string) {
-    localStorage.setItem(TOKEN_KEY, token);
+  setTokens(accessToken: string, refreshToken: string) {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   },
 
   getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(ACCESS_TOKEN_KEY);
   },
 
-  removeToken() {
-    localStorage.removeItem(TOKEN_KEY);
+  getRefreshToken(): string | null {
+    return localStorage.getItem(REFRESH_TOKEN_KEY);
+  },
+
+  removeTokens() {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   },
 
   setUser(user: any) {
@@ -32,7 +39,7 @@ export const authService = {
   },
 
   logout() {
-    this.removeToken();
+    this.removeTokens();
     this.removeUser();
   }
 };

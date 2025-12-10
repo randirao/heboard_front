@@ -1,38 +1,71 @@
 export interface User {
-  id: string;
-  username: string;
+  userId: number;
+  nickname: string;
   email: string;
 }
 
 export interface Post {
-  id: string;
+  articleId: number;
   title: string;
   content: string;
-  author: User;
-  authorId: string;
+  writerId: number;
+  writerName: string;
   viewCount: number;
   commentCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface Comment {
-  id: string;
-  postId: string;
-  content: string;
-  author: User;
-  authorId: string;
+export interface PostPreview {
+  articleId: number;
+  title: string;
+  contentPreview: string;
+  writerId: number;
+  writerName: string;
   createdAt: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface Writer {
+  id: number;
+  name: string;
+}
+
+export interface Comment {
+  id: number;
+  articleId: number;
+  content: string;
+  writer: Writer;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TokenInfo {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    token: TokenInfo;
+    user: User;
+  };
+}
+
+export interface SignupResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    email: string;
+    createdAt: string;
+  };
 }
 
 export interface PostsResponse {
-  posts: Post[];
-  nextCursor: string | null;
+  posts: PostPreview[];
+  nextCursor: number | null;
   hasMore: boolean;
 }
 

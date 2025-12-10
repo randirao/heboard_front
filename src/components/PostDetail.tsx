@@ -5,7 +5,7 @@ import { CommentSection } from './CommentSection';
 import type { Post, User } from '../types';
 
 interface PostDetailProps {
-  postId: string;
+  postId: number;
   currentUser: User;
   onBack: () => void;
   onEdit: (post: Post) => void;
@@ -63,7 +63,7 @@ export function PostDetail({ postId, currentUser, onBack, onEdit, onDelete }: Po
     );
   }
 
-  const isAuthor = currentUser.id === post.authorId;
+  const isAuthor = currentUser.userId === post.writerId;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -81,7 +81,7 @@ export function PostDetail({ postId, currentUser, onBack, onEdit, onDelete }: Po
             <div className="flex-1">
               <h1 className="text-gray-900 mb-3">{post.title}</h1>
               <div className="flex items-center gap-4 text-gray-500">
-                <span>{post.author.username}</span>
+                <span>{post.writerName}</span>
                 <span>{formatDate(post.createdAt)}</span>
                 <div className="flex items-center gap-1">
                   <Eye className="w-4 h-4" />
@@ -123,7 +123,7 @@ export function PostDetail({ postId, currentUser, onBack, onEdit, onDelete }: Po
           </div>
         </div>
 
-        <CommentSection postId={post.id} currentUser={currentUser} />
+        <CommentSection postId={post.articleId} currentUser={currentUser} />
       </div>
     </div>
   );

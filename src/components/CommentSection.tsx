@@ -5,7 +5,7 @@ import { CommentItem } from './CommentItem';
 import type { Comment, User } from '../types';
 
 interface CommentSectionProps {
-  postId: string;
+  postId: number;
   currentUser: User;
 }
 
@@ -47,7 +47,7 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
     }
   };
 
-  const handleDelete = async (commentId: string) => {
+  const handleDelete = async (commentId: number) => {
     if (!confirm('댓글을 삭제하시겠습니까?')) return;
 
     try {

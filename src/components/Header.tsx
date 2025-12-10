@@ -26,7 +26,7 @@ export function Header({ user, onLogout, onCreatePost }: HeaderProps) {
               글쓰기
             </button>
             <div className="flex items-center gap-3">
-              <span className="text-gray-700">{user.username}</span>
+              <span className="text-gray-700">{user.nickname}</span>
               <button
                 onClick={onLogout}
                 className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"

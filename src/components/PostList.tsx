@@ -15,7 +15,7 @@ export function PostList({ onPostClick, refreshTrigger }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [cursor, setCursor] = useState<number | null>(null);
   const [sort, setSort] = useState<SortOption>('latest');
   const [search, setSearch] = useState('');
   const [showHero, setShowHero] = useState(true);
@@ -118,7 +118,7 @@ export function PostList({ onPostClick, refreshTrigger }: PostListProps) {
         )}
 
         {posts.map((post) => (
-          <PostItem key={post.id} post={post} onClick={() => onPostClick(post)} />
+          <PostItem key={post.articleId} post={post} onClick={() => onPostClick(post)} />
         ))}
 
         {loading && (

@@ -8,8 +8,9 @@ interface LoginFormProps {
 
 export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,18 +21,22 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
     setLoading(true);
 
     try {
-      let response;
       if (isLogin) {
-        response = await api.login(username, password);
+        // 로그인 (이메일 또는 닉네임)
+        const response = await api.login(identifier, password);
+        authService.setTokens(response.data.token.accessToken, response.data.token.refreshToken);
+        authService.setUser(response.data.user);
+        onLoginSuccess();
       } else {
-        response = await api.register(username, email, password);
+        // 회원가입 후 자동 로그인 (이메일로)
+        await api.register(nickname, email, password);
+        const loginResponse = await api.login(email, password);  // 회원가입 시 입력한 이메일 사용
+        authService.setTokens(loginResponse.data.token.accessToken, loginResponse.data.token.refreshToken);
+        authService.setUser(loginResponse.data.user);
+        onLoginSuccess();
       }
-
-      authService.setToken(response.token);
-      authService.setUser(response.user);
-      onLoginSuccess();
     } catch (err: any) {
-      setError(err.message || '로그인에 실패했습니다');
+      setError(err.message || (isLogin ? '로그인에 실패했습니다' : '회원가입에 실패했습니다'));
     } finally {
       setLoading(false);
     }
@@ -70,18 +75,32 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-gray-700 mb-1">아이디</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00]"
-                required
-              />
-            </div>
-
             {!isLogin && (
+              <div>
+                <label className="block text-gray-700 mb-1">닉네임</label>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00]"
+                  required
+                />
+              </div>
+            )}
+
+            {isLogin ? (
+              <div>
+                <label className="block text-gray-700 mb-1">이메일 또는 닉네임</label>
+                <input
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00]"
+                  placeholder="이메일 또는 닉네임을 입력하세요"
+                  required
+                />
+              </div>
+            ) : (
               <div>
                 <label className="block text-gray-700 mb-1">이메일</label>
                 <input
@@ -102,7 +121,14 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00]"
                 required
+                minLength={8}
+                maxLength={20}
               />
+              {!isLogin && (
+                <p className="text-xs text-gray-500 mt-1">
+                  8~20자 사이로 입력해주세요. 영문, 숫자, 특수기호(!@#$%^&*) 사용 가능합니다.
+                </p>
+              )}
             </div>
 
             {error && (
