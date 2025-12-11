@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import { useNow } from '../../../lib/useNow';
 import type { Comment, User } from '../../../types';
 
 interface CommentItemProps {
@@ -9,11 +10,11 @@ interface CommentItemProps {
 
 export function CommentItem({ comment, currentUser, onDelete }: CommentItemProps) {
   const isAuthor = currentUser.userId === comment.writer.id;
+  const now = useNow();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
 
     if (hours < 1) {

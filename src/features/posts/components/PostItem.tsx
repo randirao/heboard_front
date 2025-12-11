@@ -1,4 +1,5 @@
 import { Eye, MessageSquare } from 'lucide-react';
+import { useNow } from '../../../lib/useNow';
 import type { Post } from '../../../types';
 
 interface PostItemProps {
@@ -7,10 +8,11 @@ interface PostItemProps {
 }
 
 export function PostItem({ post, onClick }: PostItemProps) {
+  const now = useNow();
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
 
     if (hours < 1) {
@@ -31,18 +33,19 @@ export function PostItem({ post, onClick }: PostItemProps) {
       className="bg-white border-b border-gray-200 px-6 py-5 hover:bg-gray-50 cursor-pointer transition-colors"
     >
       <h3 className="text-gray-900 mb-2">{post.title}</h3>
-      <div className="flex items-center gap-4 text-gray-500">
+      <div className="flex items-center gap-3 text-gray-500">
         <span>{post.writerName}</span>
+        <span className="text-gray-300">•</span>
         <span>{formatDate(post.createdAt)}</span>
-        <div className="flex items-center gap-3 ml-auto">
-          <div className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            <span>{post.viewCount}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <MessageSquare className="w-4 h-4" />
-            <span>{post.commentCount}</span>
-          </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">
+            <Eye className="w-3.5 h-3.5" />
+            {post.viewCount}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">
+            <MessageSquare className="w-3.5 h-3.5" />
+            {post.commentCount}
+          </span>
         </div>
       </div>
     </div>

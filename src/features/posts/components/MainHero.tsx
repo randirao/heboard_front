@@ -1,6 +1,7 @@
 import { TrendingUp, Clock, Users, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api } from '../../../lib/api';
+import { useNow } from '../../../lib/useNow';
 import type { Post } from '../../../types';
 
 interface MainHeroProps {
@@ -13,6 +14,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
   const [userCount, setUserCount] = useState<number>(0);
   const [articleCount, setArticleCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const now = useNow();
 
   useEffect(() => {
     loadMainData();
@@ -42,8 +44,7 @@ export function MainHero({ onPostClick }: MainHeroProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now - date.getTime();
     const hours = Math.floor(diff / (1000 * 60 * 60));
 
     if (hours < 1) {
