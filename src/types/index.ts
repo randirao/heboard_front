@@ -2,8 +2,6 @@ export interface User {
   userId: number;
   nickname: string;
   email: string;
-  emailVerified?: boolean;
-  verifiedAt?: string | null;
 }
 
 export interface Post {
@@ -62,18 +60,6 @@ export interface SignupResponse {
     id: number;
     email: string;
     createdAt: string;
-    emailVerified: boolean;
-    verifiedAt: string | null;
-    verificationEmailSent: boolean;
-  };
-}
-
-export interface EmailVerificationResponse {
-  success: boolean;
-  message: string;
-  data: {
-    email: string;
-    verifiedAt: string;
   };
 }
 

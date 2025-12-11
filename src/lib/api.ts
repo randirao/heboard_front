@@ -1,6 +1,6 @@
 import { authService } from './auth';
 import { mockApi } from './mockData';
-import type { LoginResponse, SignupResponse, PostsResponse, Post, Comment, SortOption, EmailVerificationResponse, ApiMessageResponse } from '../types';
+import type { LoginResponse, SignupResponse, PostsResponse, Post, Comment, SortOption } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8080/api';
 
@@ -65,16 +65,6 @@ class ApiClient {
     return this.request<SignupResponse>('/auth/signup', {
       method: 'POST',
       body: JSON.stringify({ nickname, email, password }),
-    });
-  }
-
-  async verifyEmail(token: string): Promise<EmailVerificationResponse> {
-    return this.request<EmailVerificationResponse>(`/auth/verify-email?token=${encodeURIComponent(token)}`);
-  }
-
-  async resendVerificationEmail(email: string): Promise<ApiMessageResponse> {
-    return this.request<ApiMessageResponse>(`/auth/resend-verification?email=${encodeURIComponent(email)}`, {
-      method: 'POST',
     });
   }
 
@@ -165,6 +155,11 @@ class ApiClient {
     return this.request<void>(`/comments/${commentId}`, {
       method: 'DELETE',
     });
+  }
+
+  // Stats
+  async getStats(): Promise<{ data: { userCount: number; articleCount: number } }> {
+    return this.request<{ data: { userCount: number; articleCount: number } }>('/stats');
   }
 }
 

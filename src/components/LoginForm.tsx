@@ -1,4 +1,4 @@
-import { useEffect, useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { api } from '../lib/api';
 import { authService } from '../lib/auth';
 
@@ -17,42 +17,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
-  const [verificationMessage, setVerificationMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get('verifyToken');
-
-    if (!token) {
-      return;
-    }
-
-    setVerificationStatus('pending');
-    setVerificationMessage('이메일 인증을 확인하는 중입니다...');
-    setIsLogin(false); // 회원가입 탭으로 전환
-
-    api.verifyEmail(token)
-      .then((response) => {
-        setVerificationStatus('success');
-        setVerificationMessage(response.message || '이메일 인증이 완료되었습니다. 로그인해주세요.');
-        setIsLogin(true);
-        setInfo('이메일 인증이 완료되었습니다. 로그인 정보를 입력해주세요.');
-      })
-      .catch((err: any) => {
-        setVerificationStatus('error');
-        setVerificationMessage(err.message || '이메일 인증에 실패했습니다. 다시 시도해주세요.');
-        setIsLogin(false); // 회원가입 탭으로 전환
-      })
-      .finally(() => {
-        params.delete('verifyToken');
-        const rest = params.toString();
-        const nextUrl = rest ? `${window.location.pathname}?${rest}` : window.location.pathname;
-        window.history.replaceState({}, '', nextUrl);
-      });
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -75,7 +40,9 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
         }
 
         await api.register(nickname, email, password);
-        setInfo('인증 메일을 보냈습니다. 이메일을 확인한 후 로그인해주세요. 메일이 오지 않으면 아래 재전송을 눌러주세요.');
+        setInfo('회원가입이 완료되었습니다. 로그인해주세요.');
+        setIsLogin(true);
+        setIdentifier(email);
         setPassword('');
         setPasswordConfirm('');
       }
@@ -125,52 +92,9 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             </button>
           </div>
 
-          {verificationStatus !== 'idle' && (
-            <div
-              className={`mb-4 px-4 py-3 rounded-lg border ${
-                verificationStatus === 'pending'
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                  : verificationStatus === 'success'
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
-              }`}
-            >
-              {verificationMessage}
-            </div>
-          )}
-
           {info && (
             <div className="mb-4 px-4 py-3 rounded-lg border bg-yellow-50 text-yellow-800 border-yellow-200">
               {info}
-            </div>
-          )}
-
-          {!isLogin && (
-            <div className="mb-2 text-right">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!email) {
-                    setError('이메일을 입력한 뒤 재전송을 눌러주세요.');
-                    return;
-                  }
-                  setError('');
-                  setInfo('');
-                  setResendLoading(true);
-                  try {
-                    const res = await api.resendVerificationEmail(email);
-                    setInfo(res.message || '인증 메일을 재발송했습니다.');
-                  } catch (err: any) {
-                    setError(err.message || '재전송에 실패했습니다. 잠시 후 다시 시도해주세요.');
-                  } finally {
-                    setResendLoading(false);
-                  }
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900 underline disabled:opacity-50"
-                disabled={resendLoading}
-              >
-                {resendLoading ? '재전송 중...' : '인증 메일 다시 보내기'}
-              </button>
             </div>
           )}
 

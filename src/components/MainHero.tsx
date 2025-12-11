@@ -10,6 +10,8 @@ interface MainHeroProps {
 export function MainHero({ onPostClick }: MainHeroProps) {
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [userCount, setUserCount] = useState<number>(0);
+  const [articleCount, setArticleCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +28,11 @@ export function MainHero({ onPostClick }: MainHeroProps) {
       // Load recent posts
       const recentResponse = await api.getPosts(undefined, 5, 'latest');
       setRecentPosts(recentResponse.posts);
+
+      // Load stats
+      const statsResponse = await api.getStats();
+      setUserCount(statsResponse.data.userCount);
+      setArticleCount(statsResponse.data.articleCount);
     } catch (err) {
       console.error('Failed to load main data:', err);
     } finally {
@@ -64,14 +71,14 @@ export function MainHero({ onPostClick }: MainHeroProps) {
             <FileText className="w-6 h-6 mx-auto mb-2 text-[#FFCC00]" />
             <div className="text-gray-900 mb-1">전체 게시글</div>
             <div className="text-gray-600">
-              {loading ? '-' : `${popularPosts.length > 0 ? '100+' : '0'}`}
+              {loading ? '-' : `${articleCount}`}
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
             <Users className="w-6 h-6 mx-auto mb-2 text-[#FFCC00]" />
             <div className="text-gray-900 mb-1">활동 회원</div>
             <div className="text-gray-600">
-              {loading ? '-' : `${popularPosts.length > 0 ? '50+' : '0'}`}
+              {loading ? '-' : `${userCount}`}
             </div>
           </div>
           <div className="bg-gray-50 rounded-lg p-4 text-center border border-gray-200">

@@ -7,13 +7,12 @@ import { PostForm } from './components/PostForm';
 import { authService } from './lib/auth';
 import type { User, Post } from './types';
 
-type View = 'list' | 'detail';
+type View = 'list' | 'detail' | 'write';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<View>('list');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [showPostForm, setShowPostForm] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -49,23 +48,22 @@ export default function App() {
 
   const handleCreatePost = () => {
     setEditingPost(null);
-    setShowPostForm(true);
+    setView('write');
   };
 
   const handleEditPost = (post: Post) => {
     setEditingPost(post);
-    setShowPostForm(true);
+    setView('write');
   };
 
   const handlePostFormClose = () => {
-    setShowPostForm(false);
+    setView('list');
     setEditingPost(null);
   };
 
   const handlePostFormSuccess = () => {
-    setShowPostForm(false);
-    setEditingPost(null);
     setView('list');
+    setEditingPost(null);
     setRefreshTrigger((prev) => prev + 1);
   };
 
@@ -97,7 +95,7 @@ export default function App() {
         />
       )}
 
-      {showPostForm && (
+      {view === 'write' && (
         <PostForm
           post={editingPost || undefined}
           onClose={handlePostFormClose}
