@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react';
-import { api } from '../lib/api';
-import { authService } from '../lib/auth';
+import { api } from '../../lib/api';
+import { authService } from '../../lib/auth';
 
 interface LoginFormProps {
   onLoginSuccess: () => void;

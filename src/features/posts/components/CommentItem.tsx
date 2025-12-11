@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react';
-import type { Comment, User } from '../types';
+import type { Comment, User } from '../../../types';
 
 interface CommentItemProps {
   comment: Comment;

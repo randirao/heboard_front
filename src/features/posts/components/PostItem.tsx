@@ -1,5 +1,5 @@
 import { Eye, MessageSquare } from 'lucide-react';
-import type { Post } from '../types';
+import type { Post } from '../../../types';
 
 interface PostItemProps {
   post: Post;

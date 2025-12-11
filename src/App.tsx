@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Header } from './components/Header';
-import { LoginForm } from './components/LoginForm';
-import { PostList } from './components/PostList';
-import { PostDetail } from './components/PostDetail';
-import { PostForm } from './components/PostForm';
+import { LoginForm } from './features/auth';
+import { Header } from './features/layout';
+import { PostDetail, PostForm, PostList } from './features/posts';
 import { authService } from './lib/auth';
 import type { User, Post } from './types';
 

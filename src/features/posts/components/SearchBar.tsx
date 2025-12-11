@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
-import type { SortOption } from '../types';
+import type { SortOption } from '../../../types';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;

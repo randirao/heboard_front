@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Edit2, Trash2, Eye, MessageSquare } from 'lucide-react';
-import { api } from '../lib/api';
+import { api } from '../../../lib/api';
 import { CommentSection } from './CommentSection';
-import type { Post, User } from '../types';
+import type { Post, User } from '../../../types';
 
 interface PostDetailProps {
   postId: number;

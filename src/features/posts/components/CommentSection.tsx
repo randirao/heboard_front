@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
-import { api } from '../lib/api';
+import { api } from '../../../lib/api';
 import { CommentItem } from './CommentItem';
-import type { Comment, User } from '../types';
+import type { Comment, User } from '../../../types';
 
 interface CommentSectionProps {
   postId: number;

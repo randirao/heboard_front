@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { api } from '../lib/api';
-import type { Post } from '../types';
+import { api } from '../../../lib/api';
+import type { Post } from '../../../types';
 
 interface PostFormProps {
   post?: Post;

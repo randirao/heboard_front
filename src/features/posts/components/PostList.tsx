@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
-import { api } from '../lib/api';
+import { api } from '../../../lib/api';
 import { PostItem } from './PostItem';
 import { SearchBar } from './SearchBar';
 import { MainHero } from './MainHero';
-import type { Post, SortOption } from '../types';
+import type { Post, SortOption } from '../../../types';
 
 interface PostListProps {
   onPostClick: (post: Post) => void;

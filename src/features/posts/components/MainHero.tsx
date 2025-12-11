@@ -1,7 +1,7 @@
 import { TrendingUp, Clock, Users, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
-import type { Post } from '../types';
+import { api } from '../../../lib/api';
+import type { Post } from '../../../types';
 
 interface MainHeroProps {
   onPostClick: (post: Post) => void;

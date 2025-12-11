@@ -1,6 +1,6 @@
 import { LogOut, PenSquare } from 'lucide-react';
-import { authService } from '../lib/auth';
-import type { User } from '../types';
+import { authService } from '../../lib/auth';
+import type { User } from '../../types';
 
 interface HeaderProps {
   user: User | null;
