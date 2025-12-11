@@ -102,9 +102,9 @@ export function PostList({ onPostClick, refreshTrigger }: PostListProps) {
 
       <div className="flex-1 overflow-y-auto">
         {!showHero && (
-          <div className="bg-white border-b border-gray-200 px-6 py-3">
-            <div className="max-w-5xl mx-auto">
-              <h3 className="text-gray-900">
+          <div className="bg-white border-b border-gray-200">
+            <div className="max-w-5xl mx-auto px-4 md:px-6 py-3">
+              <h3 className="text-gray-900 font-medium">
                 {search ? `'${search}' 검색 결과` : sort === 'views' ? '조회수순' : sort === 'comments' ? '댓글수순' : '전체 게시글'}
               </h3>
             </div>
