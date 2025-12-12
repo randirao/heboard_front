@@ -10,6 +10,9 @@ interface PostFormProps {
   onSuccess: () => void;
 }
 
+const TITLE_MAX = 100;
+const CONTENT_MAX = 5000;
+
 export function PostForm({ post, postId, onClose, onSuccess }: PostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -101,11 +104,17 @@ export function PostForm({ post, postId, onClose, onSuccess }: PostFormProps) {
           <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 flex flex-col px-6 py-5 space-y-4 overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">제목</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">제목</label>
+                  <span className="text-xs text-gray-500">
+                    {title.length}/{TITLE_MAX}
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  maxLength={TITLE_MAX}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00] focus:border-transparent"
                   placeholder="게시글 제목을 입력하세요"
                   required
@@ -113,10 +122,16 @@ export function PostForm({ post, postId, onClose, onSuccess }: PostFormProps) {
               </div>
 
               <div className="flex-1 flex flex-col min-h-0">
-                <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">내용</label>
+                  <span className="text-xs text-gray-500">
+                    {content.length}/{CONTENT_MAX}
+                  </span>
+                </div>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
+                  maxLength={CONTENT_MAX}
                   className="flex-1 w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00] focus:border-transparent resize-none"
                   placeholder="게시글 내용을 입력하세요"
                   required
