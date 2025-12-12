@@ -5,22 +5,52 @@ import type { Post } from '../../../types';
 
 interface PostFormProps {
   post?: Post;
+  postId?: number;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function PostForm({ post, onClose, onSuccess }: PostFormProps) {
+export function PostForm({ post, postId, onClose, onSuccess }: PostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [initialLoading, setInitialLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
+
+    const loadPost = async (id: number) => {
+      setInitialLoading(true);
+      try {
+        const data = await api.getPost(id);
+        if (!isMounted) return;
+        setTitle(data.title);
+        setContent(data.content);
+      } catch (err: any) {
+        if (!isMounted) return;
+        setError(err.message || '게시글을 불러오지 못했습니다');
+      } finally {
+        if (isMounted) setInitialLoading(false);
+      }
+    };
+
     if (post) {
       setTitle(post.title);
       setContent(post.content);
+      return () => {
+        isMounted = false;
+      };
     }
-  }, [post]);
+
+    if (postId) {
+      loadPost(postId);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [post, postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +58,9 @@ export function PostForm({ post, onClose, onSuccess }: PostFormProps) {
     setLoading(true);
 
     try {
-      if (post) {
-        await api.updatePost(post.articleId, title, content);
+      const targetId = post?.articleId ?? postId;
+      if (targetId) {
+        await api.updatePost(targetId, title, content);
       } else {
         await api.createPost(title, content);
       }
@@ -40,6 +71,14 @@ export function PostForm({ post, onClose, onSuccess }: PostFormProps) {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500">불러오는 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50">

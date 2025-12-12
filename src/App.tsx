@@ -1,18 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { LoginForm } from './features/auth';
 import { Header } from './features/layout';
 import { PostDetail, PostForm, PostList } from './features/posts';
 import { authService } from './lib/auth';
 import type { User, Post } from './types';
 
-type View = 'list' | 'detail' | 'write';
-
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<View>('list');
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const savedUser = authService.getUser();
@@ -24,51 +22,31 @@ export default function App() {
   const handleLoginSuccess = () => {
     const savedUser = authService.getUser();
     setUser(savedUser);
+    navigate('/');
   };
 
   const handleLogout = () => {
     authService.logout();
     setUser(null);
-    setView('list');
-    setSelectedPost(null);
-  };
-
-  const handlePostClick = (post: Post) => {
-    setSelectedPost(post);
-    setView('detail');
-  };
-
-  const handleBackToList = () => {
-    setView('list');
-    setSelectedPost(null);
-    setRefreshTrigger((prev) => prev + 1);
+    navigate('/');
   };
 
   const handleCreatePost = () => {
-    setEditingPost(null);
-    setView('write');
-  };
-
-  const handleEditPost = (post: Post) => {
-    setEditingPost(post);
-    setView('write');
-  };
-
-  const handlePostFormClose = () => {
-    setView('list');
-    setEditingPost(null);
-  };
-
-  const handlePostFormSuccess = () => {
-    setView('list');
-    setEditingPost(null);
-    setRefreshTrigger((prev) => prev + 1);
+    navigate('/write');
   };
 
   const handlePostDelete = () => {
-    setView('list');
-    setSelectedPost(null);
     setRefreshTrigger((prev) => prev + 1);
+    navigate('/');
+  };
+
+  const handlePostFormSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    navigate('/');
+  };
+
+  const handleBackToList = () => {
+    navigate(-1);
   };
 
   if (!user) {
@@ -78,28 +56,74 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header user={user} onLogout={handleLogout} onCreatePost={handleCreatePost} />
-
-      {view === 'list' && (
-        <PostList onPostClick={handlePostClick} refreshTrigger={refreshTrigger} />
-      )}
-
-      {view === 'detail' && selectedPost && (
-        <PostDetail
-          postId={selectedPost.articleId}
-          currentUser={user}
-          onBack={handleBackToList}
-          onEdit={handleEditPost}
-          onDelete={handlePostDelete}
+      <Routes>
+        <Route
+          path="/"
+          element={<PostList onPostClick={(post) => navigate(`/posts/${post.articleId}`)} refreshTrigger={refreshTrigger} />}
         />
-      )}
-
-      {view === 'write' && (
-        <PostForm
-          post={editingPost || undefined}
-          onClose={handlePostFormClose}
-          onSuccess={handlePostFormSuccess}
+        <Route
+          path="/posts/:id"
+          element={
+            <PostDetailRoute
+              currentUser={user}
+              onEdit={(post) => navigate(`/posts/${post.articleId}/edit`, { state: { post } })}
+              onDelete={handlePostDelete}
+              onBack={handleBackToList}
+            />
+          }
         />
-      )}
+        <Route
+          path="/write"
+          element={<PostFormRoute onSuccess={handlePostFormSuccess} onClose={handleBackToList} />}
+        />
+        <Route
+          path="/posts/:id/edit"
+          element={<PostFormRoute onSuccess={handlePostFormSuccess} onClose={handleBackToList} />}
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
+}
+
+function PostDetailRoute({
+  currentUser,
+  onBack,
+  onEdit,
+  onDelete,
+}: {
+  currentUser: User;
+  onBack: () => void;
+  onEdit: (post: Post) => void;
+  onDelete: () => void;
+}) {
+  const { id } = useParams();
+  const postId = useMemo(() => Number(id), [id]);
+
+  if (!id || Number.isNaN(postId)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return (
+    <PostDetail
+      postId={postId}
+      currentUser={currentUser}
+      onBack={onBack}
+      onEdit={onEdit}
+      onDelete={onDelete}
+    />
+  );
+}
+
+function PostFormRoute({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
+  const { id } = useParams();
+  const { state } = useLocation();
+  const postFromState = (state as { post?: Post } | undefined)?.post;
+  const postId = id ? Number(id) : undefined;
+
+  if (id && Number.isNaN(postId)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <PostForm post={postFromState} postId={postId} onClose={onClose} onSuccess={onSuccess} />;
 }
