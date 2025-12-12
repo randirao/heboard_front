@@ -2,3 +2,4 @@
 .env.*
 # Local environment files
 # Add any other sensitive files below
+.vercel
