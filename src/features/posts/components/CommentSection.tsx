@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { api } from '../../../lib/api';
 import { CommentItem, CommentWithChildren } from './CommentItem';
@@ -11,10 +11,12 @@ interface CommentSectionProps {
 
 export function CommentSection({ postId, currentUser }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [replyingTo, setReplyingTo] = useState<{ id: number; name: string } | null>(null);
   const [content, setContent] = useState('');
+  const [replyContent, setReplyContent] = useState('');
+  const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [replySubmitting, setReplySubmitting] = useState(false);
 
   useEffect(() => {
     loadComments();
@@ -38,14 +40,33 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
 
     setSubmitting(true);
     try {
-      const newComment = await api.createComment(postId, content, replyingTo?.id);
+      const newComment = await api.createComment(postId, content);
       setComments((prev) => [...prev, newComment]);
       setContent('');
-      setReplyingTo(null);
     } catch (err) {
       console.error('Failed to create comment:', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleReplyStart = (commentId: number) => {
+    setReplyTargetId((prev) => (prev === commentId ? null : commentId));
+    setReplyContent('');
+  };
+
+  const handleReplySubmit = async (parentId: number) => {
+    if (!replyContent.trim()) return;
+    setReplySubmitting(true);
+    try {
+      const newComment = await api.createComment(postId, replyContent, parentId);
+      setComments((prev) => [...prev, newComment]);
+      setReplyContent('');
+      setReplyTargetId(null);
+    } catch (err) {
+      console.error('Failed to create reply:', err);
+    } finally {
+      setReplySubmitting(false);
     }
   };
 
@@ -60,28 +81,7 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
     }
   };
 
-  const buildTree = (flat: Comment[]): CommentWithChildren[] => {
-    const map = new Map<number, CommentWithChildren>();
-    const roots: CommentWithChildren[] = [];
-    flat.forEach((c) => {
-      map.set(c.id, { ...c, children: [] });
-    });
-    flat.forEach((c) => {
-      const node = map.get(c.id)!;
-      if (c.parentId && map.has(c.parentId)) {
-        map.get(c.parentId)!.children!.push(node);
-      } else {
-        roots.push(node);
-      }
-    });
-    return roots;
-  };
-
-  const handleReply = (commentId: number, writerName: string) => {
-    setReplyingTo({ id: commentId, name: writerName });
-  };
-
-  const threadedComments = buildTree(comments);
+  const threadedComments = useMemo(() => buildTree(comments), [comments]);
 
   return (
     <div className="border-t border-gray-200 bg-gray-50">
@@ -99,18 +99,6 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
             placeholder="댓글을 입력하세요"
             rows={3}
           />
-          {replyingTo && (
-            <div className="text-sm text-gray-600 mt-2 flex items-center gap-2">
-              <span className="font-medium">대댓글 대상:</span> <span>{replyingTo.name}</span>
-              <button
-                type="button"
-                className="text-gray-500 hover:text-gray-800"
-                onClick={() => setReplyingTo(null)}
-              >
-                취소
-              </button>
-            </div>
-          )}
           <div className="flex justify-end mt-2">
             <button
               type="submit"
@@ -128,20 +116,109 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
           ) : comments.length === 0 ? (
             <div className="py-8 text-center text-gray-500">첫 댓글을 작성해보세요</div>
           ) : (
-            <div className="px-4">
-              {threadedComments.map((comment) => (
-                <CommentItem
-                  key={comment.id}
-                  comment={comment}
-                  currentUser={currentUser}
-                  onDelete={handleDelete}
-                  onReply={handleReply}
-                />
-              ))}
-            </div>
+            <CommentTree
+              comments={threadedComments}
+              currentUser={currentUser}
+              onDelete={handleDelete}
+              onReplyStart={handleReplyStart}
+              replyTargetId={replyTargetId}
+              replyContent={replyContent}
+              setReplyContent={setReplyContent}
+              onReplySubmit={handleReplySubmit}
+              replySubmitting={replySubmitting}
+            />
           )}
         </div>
       </div>
     </div>
   );
+}
+
+function buildTree(flat: Comment[]): CommentWithChildren[] {
+  const map = new Map<number, CommentWithChildren>();
+  const roots: CommentWithChildren[] = [];
+  flat.forEach((c) => {
+    map.set(c.id, { ...c, children: [] });
+  });
+  flat.forEach((c) => {
+    const node = map.get(c.id)!;
+    if (c.parentId && map.has(c.parentId)) {
+      map.get(c.parentId)!.children!.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots;
+}
+
+function CommentTree({
+  comments,
+  currentUser,
+  onDelete,
+  onReplyStart,
+  replyTargetId,
+  replyContent,
+  setReplyContent,
+  onReplySubmit,
+  replySubmitting,
+}: {
+  comments: CommentWithChildren[];
+  currentUser: User;
+  onDelete: (id: number) => void;
+  onReplyStart: (id: number) => void;
+  replyTargetId: number | null;
+  replyContent: string;
+  setReplyContent: (v: string) => void;
+  onReplySubmit: (parentId: number) => void;
+  replySubmitting: boolean;
+}) {
+  const renderNode = (node: CommentWithChildren, depth: number = 0) => (
+    <div key={node.id} className="px-4">
+      <CommentItem
+        comment={node}
+        currentUser={currentUser}
+        onDelete={onDelete}
+        onReply={(id) => onReplyStart(id)}
+        depth={depth}
+      />
+      {replyTargetId === node.id && (
+        <div className="mt-2" style={{ paddingLeft: depth ? 20 * (depth + 1) : 20 }}>
+          <textarea
+            value={replyContent}
+            onChange={(e) => setReplyContent(e.target.value)}
+            placeholder="답글을 입력하세요"
+            rows={2}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00] resize-none"
+          />
+          <div className="flex justify-end mt-2 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setReplyContent('');
+                onReplyStart(node.id);
+              }}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={replySubmitting || !replyContent.trim()}
+              onClick={() => onReplySubmit(node.id)}
+              className="px-4 py-2 bg-[#FFCC00] text-gray-900 rounded-lg hover:bg-[#E6B800] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {replySubmitting ? '작성중...' : '답글 작성'}
+            </button>
+          </div>
+        </div>
+      )}
+      {node.children && node.children.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {node.children.map((child) => renderNode(child, depth + 1))}
+        </div>
+      )}
+    </div>
+  );
+
+  return <div>{comments.map((c) => renderNode(c))}</div>;
 }
