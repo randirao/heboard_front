@@ -37,6 +37,7 @@ export interface Comment {
   writer: Writer;
   createdAt: string;
   updatedAt: string;
+  parentId?: number | null;
 }
 
 export interface TokenInfo {

@@ -138,13 +138,13 @@ class ApiClient {
     return response.content;
   }
 
-  async createComment(postId: number, content: string): Promise<Comment> {
+  async createComment(postId: number, content: string, parentId?: number): Promise<Comment> {
     if (USE_MOCK_DATA) {
       return mockApi.createComment(postId.toString(), content);
     }
     return this.request<Comment>('/comments', {
       method: 'POST',
-      body: JSON.stringify({ articleId: postId, content }),
+      body: JSON.stringify({ articleId: postId, content, parentId }),
     });
   }
 

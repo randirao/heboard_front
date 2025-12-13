@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare } from 'lucide-react';
 import { api } from '../../../lib/api';
-import { CommentItem } from './CommentItem';
+import { CommentItem, CommentWithChildren } from './CommentItem';
 import type { Comment, User } from '../../../types';
 
 interface CommentSectionProps {
@@ -11,6 +11,7 @@ interface CommentSectionProps {
 
 export function CommentSection({ postId, currentUser }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [replyingTo, setReplyingTo] = useState<{ id: number; name: string } | null>(null);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -37,9 +38,10 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
 
     setSubmitting(true);
     try {
-      const newComment = await api.createComment(postId, content);
+      const newComment = await api.createComment(postId, content, replyingTo?.id);
       setComments((prev) => [...prev, newComment]);
       setContent('');
+      setReplyingTo(null);
     } catch (err) {
       console.error('Failed to create comment:', err);
     } finally {
@@ -58,6 +60,29 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
     }
   };
 
+  const buildTree = (flat: Comment[]): CommentWithChildren[] => {
+    const map = new Map<number, CommentWithChildren>();
+    const roots: CommentWithChildren[] = [];
+    flat.forEach((c) => {
+      map.set(c.id, { ...c, children: [] });
+    });
+    flat.forEach((c) => {
+      const node = map.get(c.id)!;
+      if (c.parentId && map.has(c.parentId)) {
+        map.get(c.parentId)!.children!.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+    return roots;
+  };
+
+  const handleReply = (commentId: number, writerName: string) => {
+    setReplyingTo({ id: commentId, name: writerName });
+  };
+
+  const threadedComments = buildTree(comments);
+
   return (
     <div className="border-t border-gray-200 bg-gray-50">
       <div className="max-w-3xl mx-auto px-6 py-6">
@@ -74,6 +99,18 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
             placeholder="댓글을 입력하세요"
             rows={3}
           />
+          {replyingTo && (
+            <div className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+              <span className="font-medium">대댓글 대상:</span> <span>{replyingTo.name}</span>
+              <button
+                type="button"
+                className="text-gray-500 hover:text-gray-800"
+                onClick={() => setReplyingTo(null)}
+              >
+                취소
+              </button>
+            </div>
+          )}
           <div className="flex justify-end mt-2">
             <button
               type="submit"
@@ -92,12 +129,13 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
             <div className="py-8 text-center text-gray-500">첫 댓글을 작성해보세요</div>
           ) : (
             <div className="px-4">
-              {comments.map((comment) => (
+              {threadedComments.map((comment) => (
                 <CommentItem
                   key={comment.id}
                   comment={comment}
                   currentUser={currentUser}
                   onDelete={handleDelete}
+                  onReply={handleReply}
                 />
               ))}
             </div>
