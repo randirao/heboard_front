@@ -1,21 +1,172 @@
+# heboard-front – 자유 게시판 프론트엔드
 
-# heboard
+> React + TypeScript 기반 게시판 서비스 프론트엔드 (개인 프로젝트, 2024.12.01 ~ 2024.12.13)
 
-This is a code bundle for heboard. The original project is available at https://www.figma.com/design/vgEJplRBAV92gIWZi3bRL4/heboard.
+---
 
-## Running the code
+## 🔍 주요 기능
 
-Run `npm i` to install the dependencies.
+### 1. 무한 스크롤 (Infinite Scroll)
 
-Run `npm run dev` to start the development server.
+**구현 근거**:
+- 페이지네이션 방식은 사용자가 페이지 번호를 클릭해야 하는 번거로움 존재
+- 모바일 환경에서 스크롤 기반 UI가 더 자연스러운 사용자 경험 제공
 
-## Project structure
+**기술적 이점**:
+- Intersection Observer API를 활용한 자동 로딩
+- 커서 기반 페이지네이션으로 중복 데이터 없이 안정적인 스크롤 구현
+- 로딩 상태 관리로 중복 요청 방지
 
-- `src/features/auth`: Auth flow UI components such as login/register
-- `src/features/layout`: Layout-level components like the header
-- `src/features/posts`: Post listing/detail/write components and related UI
-- `src/components/ui`: Shared UI primitives (shadcn)
-- `src/lib`: API/auth utilities
-- `src/types`: Shared TypeScript types
-- `src/styles`: Global styles
-  
+**핵심 구현**:
+```typescript
+// PostList.tsx
+const observer = new IntersectionObserver(
+  (entries) => {
+    if (entries[0].isIntersecting && hasMore && !loading) {
+      loadMorePosts();
+    }
+  },
+  { threshold: 0.1 }
+);
+```
+
+### 2. 다중 정렬 및 동적 검색
+
+**구현 근거**:
+- 사용자가 원하는 정보를 빠르게 찾을 수 있도록 다양한 정렬 옵션 제공
+- 제목/내용/작성자 단위로 세분화된 검색으로 검색 정확도 향상
+
+**기술적 이점**:
+- URL 쿼리 파라미터를 통한 검색/정렬 상태 유지
+- 뒤로가기/앞으로가기 시에도 검색 상태 보존
+- 최신순, 조회수순, 댓글순 정렬 지원
+
+### 3. 계층형 댓글 UI
+
+**구현 근거**:
+- 대댓글 구조로 댓글 간 대화 맥락 명확히 표현
+- 중첩된 댓글을 시각적으로 구분하여 가독성 향상
+
+**기술적 이점**:
+- 재귀적 컴포넌트 구조로 N차 대댓글까지 확장 가능
+- 들여쓰기와 연결선으로 댓글 계층 구조 시각화
+
+**핵심 구현**:
+```typescript
+// CommentItem.tsx
+{comment.replies?.map((reply) => (
+  <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
+))}
+```
+
+---
+
+## 💻 로컬 실행 방법
+
+### 1. 사전 준비
+- Node.js 20+
+- npm 또는 yarn
+- Git
+
+### 2. 저장소 클론
+```bash
+git clone https://github.com/your-username/heboard-front.git
+cd heboard-front
+```
+
+### 3. 의존성 설치
+```bash
+npm install
+```
+
+### 4. 환경 변수 설정
+`.env` 파일 생성:
+```env
+VITE_API_URL=http://localhost:8080/api
+```
+
+### 5. 개발 서버 실행
+```bash
+npm run dev
+```
+
+### 6. 프로덕션 빌드
+```bash
+npm run build
+```
+
+### 7. 접속
+- 개발 서버: http://localhost:5173
+
+---
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── features/           # 기능별 컴포넌트
+│   ├── auth/          # 인증 (로그인/회원가입)
+│   ├── layout/        # 레이아웃 (헤더 등)
+│   └── posts/         # 게시글/댓글 관련
+│       └── components/
+│           ├── MainHero.tsx        # 메인 히어로 섹션
+│           ├── SearchBar.tsx       # 검색 및 정렬 바
+│           ├── PostList.tsx        # 게시글 목록 (무한 스크롤)
+│           ├── PostItem.tsx        # 게시글 아이템
+│           ├── PostDetail.tsx      # 게시글 상세
+│           ├── PostForm.tsx        # 게시글 작성/수정 폼
+│           ├── CommentSection.tsx  # 댓글 섹션
+│           └── CommentItem.tsx     # 댓글 아이템 (재귀)
+├── components/        # 공유 컴포넌트
+│   └── ui/           # UI 유틸리티 (cn 함수)
+├── lib/              # 유틸리티 함수
+│   ├── api.ts        # API 클라이언트
+│   ├── auth.ts       # 인증 서비스
+│   ├── useNow.ts     # 시간 표시 훅
+│   └── mockData.ts   # Mock 데이터 (개발용)
+├── types/            # TypeScript 타입 정의
+├── styles/           # 전역 스타일
+├── App.tsx           # 메인 앱 컴포넌트
+└── main.tsx          # 앱 진입점
+```
+
+---
+
+## 🛠️ 기술 스택
+
+- **Frontend**: React 18, TypeScript
+- **Build Tool**: Vite 6
+- **Routing**: React Router 6
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **HTTP Client**: Fetch API
+- **Auth**: JWT (localStorage)
+
+---
+
+## 🎨 주요 라이브러리
+
+- **react-router-dom**: 클라이언트 사이드 라우팅
+- **lucide-react**: 아이콘 라이브러리
+- **tailwind-merge**: Tailwind CSS 클래스 병합 유틸리티
+- **class-variance-authority**: 컴포넌트 variant 관리
+
+---
+
+## 🌐 배포
+
+프로젝트는 Vercel에 배포되어 있습니다.
+
+배포 설정은 `vercel.json`에서 확인할 수 있습니다.
+
+---
+
+## 🔗 관련 프로젝트
+
+- [heboard (Backend)](../heboard) - Spring Boot 기반 백엔드 API 서버
+
+---
+
+## 📄 라이선스
+
+이 프로젝트는 [MIT 라이선스](./Attributions.md)를 따릅니다.
