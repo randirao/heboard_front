@@ -17,6 +17,9 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [replySubmitting, setReplySubmitting] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   useEffect(() => {
     loadComments();
@@ -81,6 +84,41 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
     }
   };
 
+  const handleEditStart = (commentId: number, currentContent: string) => {
+    setEditingCommentId(commentId);
+    setEditContent(currentContent);
+    setReplyTargetId(null);
+    setReplyContent('');
+  };
+
+  const handleEditCancel = () => {
+    setEditingCommentId(null);
+    setEditContent('');
+  };
+
+  const handleEditSubmit = async (commentId: number) => {
+    if (!editContent.trim()) return;
+
+    if (editContent === comments.find(c => c.id === commentId)?.content) {
+      handleEditCancel();
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const updatedComment = await api.updateComment(commentId, editContent);
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? updatedComment : c))
+      );
+      setEditingCommentId(null);
+      setEditContent('');
+    } catch (err) {
+      console.error('Failed to update comment:', err);
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   const threadedComments = useMemo(() => buildTree(comments), [comments]);
 
   return (
@@ -120,6 +158,13 @@ export function CommentSection({ postId, currentUser }: CommentSectionProps) {
               comments={threadedComments}
               currentUser={currentUser}
               onDelete={handleDelete}
+              onEdit={handleEditStart}
+              editingCommentId={editingCommentId}
+              editContent={editContent}
+              setEditContent={setEditContent}
+              onEditSubmit={handleEditSubmit}
+              onEditCancel={handleEditCancel}
+              editSubmitting={editSubmitting}
               onReplyStart={handleReplyStart}
               replyTargetId={replyTargetId}
               replyContent={replyContent}
@@ -155,6 +200,13 @@ function CommentTree({
   comments,
   currentUser,
   onDelete,
+  onEdit,
+  editingCommentId,
+  editContent,
+  setEditContent,
+  onEditSubmit,
+  onEditCancel,
+  editSubmitting,
   onReplyStart,
   replyTargetId,
   replyContent,
@@ -165,6 +217,13 @@ function CommentTree({
   comments: CommentWithChildren[];
   currentUser: User;
   onDelete: (id: number) => void;
+  onEdit: (id: number, content: string) => void;
+  editingCommentId: number | null;
+  editContent: string;
+  setEditContent: (v: string) => void;
+  onEditSubmit: (id: number) => void;
+  onEditCancel: () => void;
+  editSubmitting: boolean;
   onReplyStart: (id: number) => void;
   replyTargetId: number | null;
   replyContent: string;
@@ -178,9 +237,39 @@ function CommentTree({
         comment={node}
         currentUser={currentUser}
         onDelete={onDelete}
+        onEdit={(id) => onEdit(id, node.content)}
         onReply={(id) => onReplyStart(id)}
         depth={depth}
       />
+      {editingCommentId === node.id && (
+        <div className="mt-2" style={{ paddingLeft: depth ? 20 * (depth + 1) : 20 }}>
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            placeholder="댓글을 수정하세요"
+            rows={3}
+            autoFocus
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FFCC00] resize-none"
+          />
+          <div className="flex justify-end mt-2 gap-2">
+            <button
+              type="button"
+              onClick={onEditCancel}
+              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-300 transition-colors"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              disabled={editSubmitting || !editContent.trim()}
+              onClick={() => onEditSubmit(node.id)}
+              className="px-4 py-2 bg-[#FFCC00] text-gray-900 rounded-lg hover:bg-[#E6B800] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {editSubmitting ? '수정중...' : '수정 완료'}
+            </button>
+          </div>
+        </div>
+      )}
       {replyTargetId === node.id && (
         <div className="mt-2" style={{ paddingLeft: depth ? 20 * (depth + 1) : 20 }}>
           <textarea

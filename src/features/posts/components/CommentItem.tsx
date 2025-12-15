@@ -1,4 +1,4 @@
-import { Trash2, CornerDownRight } from 'lucide-react';
+import { Trash2, CornerDownRight, Edit2 } from 'lucide-react';
 import { useNow } from '../../../lib/useNow';
 import type { Comment, User } from '../../../types';
 
@@ -10,11 +10,12 @@ interface CommentItemProps {
   comment: CommentWithChildren;
   currentUser: User;
   onDelete: (commentId: number) => void;
+  onEdit?: (commentId: number) => void;
   depth?: number;
   onReply?: (commentId: number, writerName: string) => void;
 }
 
-export function CommentItem({ comment, currentUser, onDelete, onReply, depth = 0 }: CommentItemProps) {
+export function CommentItem({ comment, currentUser, onDelete, onEdit, onReply, depth = 0 }: CommentItemProps) {
   const isAuthor = currentUser.userId === comment.writer.id;
   const now = useNow();
 
@@ -46,12 +47,22 @@ export function CommentItem({ comment, currentUser, onDelete, onReply, depth = 0
           <span className="text-gray-500">{formatDate(comment.createdAt)}</span>
         </div>
         {isAuthor && (
-          <button
-            onClick={() => onDelete(comment.id)}
-            className="text-gray-400 hover:text-red-600 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEdit?.(comment.id)}
+              className="text-gray-400 hover:text-[#FFCC00] transition-colors"
+              title="수정"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(comment.id)}
+              className="text-gray-400 hover:text-red-600 transition-colors"
+              title="삭제"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
       <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>

@@ -157,6 +157,16 @@ class ApiClient {
     });
   }
 
+  async updateComment(commentId: number, content: string): Promise<Comment> {
+    if (USE_MOCK_DATA) {
+      throw new Error('Mock not implemented for updateComment');
+    }
+    return this.request<Comment>(`/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content }),
+    });
+  }
+
   // Stats
   async getStats(): Promise<{ data: { userCount: number; articleCount: number } }> {
     return this.request<{ data: { userCount: number; articleCount: number } }>('/stats');
